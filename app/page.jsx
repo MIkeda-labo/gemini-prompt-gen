@@ -869,7 +869,19 @@ export default function Home() {
                 {/* 実行結果の表示エリア */}
                 {executionResult && (
                   <div className="animate-in" style={{ marginTop: "1.5rem", textAlign: "left" }}>
-                    <span style={lblStyle}>🤖 Geminiの実行結果</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <span style={{ ...lblStyle, marginBottom: 0 }}>🤖 Geminiの実行結果</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(executionResult).then(() => alert("実行結果をコピーしました！"));
+                        }}
+                        style={{ padding: "6px 16px", fontSize: 12, borderRadius: 8, background: "rgba(16, 185, 129, 0.2)", border: "1px solid rgba(16, 185, 129, 0.4)", color: "#6ee7b7", cursor: "pointer", transition: "all 0.2s" }}
+                        onMouseOver={(e) => e.target.style.background = "rgba(16, 185, 129, 0.3)"}
+                        onMouseOut={(e) => e.target.style.background = "rgba(16, 185, 129, 0.2)"}
+                      >
+                        📋 コピー
+                      </button>
+                    </div>
                     <div className="glass-card" style={{ padding: "1.5rem", border: "1px solid rgba(16, 185, 129, 0.5)", background: "rgba(16, 185, 129, 0.05)" }}>
                       <div className="markdown-body" style={{ fontSize: 14, lineHeight: 1.8, color: "#e2e8f0" }}>
                         <ReactMarkdown>{executionResult}</ReactMarkdown>
