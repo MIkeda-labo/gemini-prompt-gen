@@ -121,22 +121,23 @@ export async function updateBtnLabelAct(intent) {
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: `目的: ${intent}\n\nユーザーの目的に合ったボタンラベルを1つだけ生成してください。条件：12文字以内の動詞フレーズ、末尾に「 ↗」を付けること。
-※絶対厳守事項※
-思考プロセス、理由付け、英語の文章（THINKなど）、その他の説明は一切含めないでください。
-「名所を確認する ↗」のような、最終的なボタンラベルの文字列だけを直接出力してください。`
+      contents: `目的: ${intent}\n\nユーザーの目的に合ったボタンラベルを1つ生成してください。\n形式：{"label": "12文字以内の動詞フレーズ ↗"}\n例：{"label": "名所を確認する ↗"}`,
+      config: {
+        responseMimeType: "application/json"
+      }
     });
-    return response.text.replace(/THINK[\s\S]*?\n/i, "").trim();
+    const json = JSON.parse(response.text.trim());
+    return json.label;
   } catch (err) {
     console.error("updateBtnLabel error:", err);
-    return null;
+    return "最適なプロンプトを生成 ↗";
   }
 }
 
 export async function generateOptimizedAct(intent, currentPrompt, tagsStr, fewShots = []) {
   try {
-    const fewShotBlock = fewShots.length > 0 
-      ? `\n\n【重要：参考にするお手本（Few-shot）】\n以下の過去の成功例のトーンや構成、具体性を参考にしてください：\n${fewShots.map((f, i) => `例${i+1}:\n${f}`).join("\n\n")}\n`
+    const fewShotBlock = fewShots.length > 0
+      ? `\n\n【重要：参考にするお手本（Few-shot）】\n以下の過去の成功例のトーンや構成、具体性を参考にしてください：\n${fewShots.map((f, i) => `例${i + 1}:\n${f}`).join("\n\n")}\n`
       : "";
 
     const response = await ai.models.generateContent({

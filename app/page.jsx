@@ -100,6 +100,7 @@ export default function Home() {
   const [notTags, setNotTags] = useState(DEFAULT_NOT_TAGS);
   const [selectedNotTags, setSelectedNotTags] = useState(new Set());
   const [notTagsLoading, setNotTagsLoading] = useState(false);
+  const [expandedHistoryId, setExpandedHistoryId] = useState(null); // 履歴詳細の展開用
 
 
   const [loadedFileNames, setLoadedFileNames] = useState([]); // 新規: 読み込んだファイル名
@@ -777,7 +778,7 @@ export default function Home() {
                 <div className="animate-in" style={{ marginTop: "2rem", background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: "1.5rem" }}>
                   <div style={{ marginBottom: 12 }}>
                     <span style={{ fontSize: 13, color: "#fca5a5" }}>
-                      ⚠️ この目的で失敗しやすい・除外すべき項目を追加で設定しますか？
+                      📝 除外すべき項目・禁止事項の理由（修正できます）
                       {notTagsLoading && <span style={{ marginLeft: 8 }}><Spinner /></span>}
                     </span>
                   </div>
@@ -978,39 +979,100 @@ export default function Home() {
                         borderLeft: isSelected ? "4px solid #a78bfa" : "4px solid transparent",
                         transition: "all 0.2s"
                       }}
-                      onClick={() => {
-                        setSelectedFewShotIds(prev => {
-                          const next = new Set(prev);
-                          if (next.has(h.id)) {
-                            next.delete(h.id);
-                          } else if (next.size < 3) {
-                            next.add(h.id);
-                          } else {
-                            alert("Few-shotは最大3つまで選択可能です。");
-                          }
-                          return next;
-                        });
-                      }}
                     >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        readOnly
-                        style={{ width: 16, height: 16, cursor: "pointer", accentColor: "#a78bfa" }}
-                      />
-                      <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          padding: "4px 8px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center"
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFewShotIds(prev => {
+                            const next = new Set(prev);
+                            if (next.has(h.id)) {
+                              next.delete(h.id);
+                            } else if (next.size < 3) {
+                              next.add(h.id);
+                            } else {
+                              alert("Few-shotは最大3つまで選択可能です。");
+                            }
+                            return next;
+                          });
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          readOnly
+                          style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#a78bfa" }}
+                        />
+                      </div>
+
+                      <div 
+                        style={{ flex: 1, cursor: "pointer" }}
+                        onClick={() => setExpandedHistoryId(expandedHistoryId === h.id ? null : h.id)}
+                      >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontWeight: 500, color: isSelected ? "#ddd6fe" : "#e2e8f0", fontSize: 14 }}>
-                            {(h.optimized || "").slice(0, 60)}
-                            {(h.optimized || "").length > 60 ? "…" : ""}
+                          <span style={{ fontWeight: 600, color: isSelected ? "#ddd6fe" : "#e2e8f0", fontSize: 14 }}>
+                            {h.intent || "目的未入力"}
                           </span>
-                          <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 20, marginLeft: 6, background: "rgba(255, 255, 255, 0.05)", color: "var(--color-text-tertiary)" }}>
-                            {h.time.split(" ")[1]}
-                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 20, background: "rgba(255, 255, 255, 0.05)", color: "var(--color-text-tertiary)" }}>
+                              {h.time}
+                            </span>
+                            <span style={{ fontSize: 12, color: "#a78bfa" }}>
+                              {expandedHistoryId === h.id ? "▲" : "▼"}
+                            </span>
+                          </div>
                         </div>
-                        <div style={{ fontSize: 11, color: isSelected ? "#a78bfa" : "var(--color-text-tertiary)", marginTop: 4 }}>
+                        <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginTop: 4 }}>
                           観点: {h.tags || "なし"}
                         </div>
+
+                        {/* 展開時の詳細表示 */}
+                        {expandedHistoryId === h.id && (
+                          <div className="animate-in" style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                            <div style={{ marginBottom: 12 }}>
+                              <span style={{ fontSize: 11, color: "#60a5fa", display: "block", marginBottom: 4 }}>✨ 最適化されたプロンプト:</span>
+                              <pre style={{ fontSize: 12, color: "#e2e8f0", background: "rgba(0,0,0,0.3)", padding: 12, borderRadius: 6, whiteSpace: "pre-wrap", maxHeight: 200, overflowY: "auto", border: "1px solid rgba(255,255,255,0.05)" }}>
+                                {h.optimized}
+                              </pre>
+                            </div>
+                            
+                            {h.reasons && h.reasons.length > 0 && (
+                              <div style={{ marginBottom: 12 }}>
+                                <span style={{ fontSize: 11, color: "#10b981", display: "block", marginBottom: 4 }}>💡 改善ポイント:</span>
+                                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#a7f3d0" }}>
+                                  {h.reasons.map((r, idx) => <li key={idx} style={{ marginBottom: 2 }}>{r}</li>)}
+                                </ul>
+                              </div>
+                            )}
+
+                            {h.tips && (
+                              <div>
+                                <span style={{ fontSize: 11, color: "#a78bfa", display: "block", marginBottom: 4 }}>💭 アドバイス:</span>
+                                <div style={{ fontSize: 12, color: "#ddd6fe", padding: "8px 12px", background: "rgba(167, 139, 250, 0.05)", borderRadius: 6, borderLeft: "3px solid #a78bfa" }}>
+                                  {h.tips}
+                                </div>
+                              </div>
+                            )}
+
+                            <div style={{ marginTop: 12, textAlign: "right" }}>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(h.optimized);
+                                  alert("コピーしました！");
+                                }}
+                                style={{ fontSize: 11, padding: "4px 10px", borderRadius: 4, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }}
+                              >
+                                📋 プロンプトをコピー
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

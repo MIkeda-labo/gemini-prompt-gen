@@ -1,0 +1,10 @@
+Setup started 
+Date: 2026/05/09 12:18:25.52 
+Path: C:\Users\masanori\.gemini\gemini-prompt-gen\ 
+発生場所 行:1 文字:161
++ ... IsOSPlatform([Runtime.InteropServices.OSPlatform]::Windows) ? [Enviro ...
++                                                                 ~
+式またはステートメントのトークン '?' を使用できません。
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : UnexpectedToken
+ 

@@ -9,4 +9,6 @@ node_modules/
 # debug
 npm-debug.log*
 
+# env files
 .env*
+!.env.local.example
